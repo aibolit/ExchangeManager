@@ -210,7 +210,10 @@ public class ExchangeServer implements Runnable {
     }
 
     private String processCommand(String user, String line, int connectionId, PrintWriter pout) throws ExchangeException {
-        StringTokenizer st = new StringTokenizer(line);
+        StringTokenizer st = new StringTokenizer(line.trim());
+        if (!st.hasMoreTokens()) {
+            return null;
+        }
         String cmd = st.nextToken();
         String out = null;
         switch (cmd) {

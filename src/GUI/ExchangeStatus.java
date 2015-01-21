@@ -39,6 +39,7 @@ import javax.swing.DefaultListModel;
  */
 public class ExchangeStatus extends javax.swing.JFrame {
 
+    private static double INVALID_PRICE = -1.0;
     private static final long serialVersionUID = 1L;
     private final ExchangeServer exchangeServer;
     private final Map<Security, Double[]> securityHistory = new ConcurrentSkipListMap<>(new Comparator<Security>() {
@@ -157,7 +158,14 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 bestOrders.put(entry.getKey(), new EnumMap<OrderType, Double>(OrderType.class));
                 try {
                     for (Map.Entry<OrderType, SortedSet<Order>> orderEntry : exchangeServer.getExchange().getOrderStatus(security.getTicker()).entrySet()) {
-                        bestOrders.get(security).put(orderEntry.getKey(), orderEntry.getValue().first().getPrice());
+                        if(orderEntry.getValue().size()>0)
+                        {
+                            bestOrders.get(security).put(orderEntry.getKey(), orderEntry.getValue().first().getPrice());
+                        }
+                        else
+                        {
+                            bestOrders.get(security).put(orderEntry.getKey(), INVALID_PRICE);
+                        }
                     }
                 } catch (ExchangeException ex) {
                     ex.printStackTrace();
@@ -169,7 +177,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
             for (Map.Entry<Security, Double[]> entry : securityValuationHistory.entrySet()) {
                 Security security = entry.getKey();
                 entry.getValue()[tick % entry.getValue().length] = exchangeServer.getExchange().getSecurityValuations().get(security);
-                //System.out.println("DEBUG"+security.getTicker()+" "+entry.getValue()[tick % entry.getValue().length]);
             }
         }
         BufferedImage bi = new BufferedImage(canvas.getWidth(), canvas.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -294,11 +301,55 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 cg.drawString(String.format("%10s", netWorthFormat.format(currentValue)), 100, 18 * i);
 
                 cg.setColor(Color.WHITE);
+                Double bestBid = INVALID_PRICE, bestAsk = INVALID_PRICE;
+                String bestBidString = "", bestAskString = "";
+                if (bestOrders.containsKey(security) && bestOrders.get(security).containsKey(OrderType.BID))
+                {
+                    bestBid = bestOrders.get(security).get(OrderType.BID);
+                    bestBidString = String.format("%9s", bidAskFormat.format(bestBid));
+                }
+                if (bestOrders.containsKey(security) && bestOrders.get(security).containsKey(OrderType.ASK))
+                {
+                    bestAsk = bestOrders.get(security).get(OrderType.ASK);
+                    bestAskString = String.format("%9s", bidAskFormat.format(bestAsk));
+                }
+                if(bestBidString.equals(bestAskString))
+                {
+                    if(bestAsk>bestBid)
+                    {
+                        bestBidString += "-";
+                        bestAskString += "+";
+                    }
+                    else if(bestAsk<bestBid)
+                    {
+                        bestBidString += "+";
+                        bestAskString += "-";
+                    }
+                    else // equal; happens only if user puts the same price
+                    {
+                        bestBidString += "=";
+                        bestAskString += "=";
+                    }
+                }
                 if (bestOrders.containsKey(security) && bestOrders.get(security).containsKey(OrderType.BID)) {
-                    cg.drawString(String.format("%9s", bidAskFormat.format(bestOrders.get(security).get(OrderType.BID))), 220, 18 * i);
+                    if((bestOrders.get(security).get(OrderType.BID))!=INVALID_PRICE)
+                    {
+                        cg.drawString(bestBidString, 220, 18 * i);
+                    }
+                    else
+                    {
+                        cg.drawString("     N.A.", 220, 18 * i);
+                    }
                 }
                 if (bestOrders.containsKey(security) && bestOrders.get(security).containsKey(OrderType.ASK)) {
-                    cg.drawString(String.format("%9s", bidAskFormat.format(bestOrders.get(security).get(OrderType.ASK))), 330, 18 * i);
+                    if((bestOrders.get(security).get(OrderType.ASK))!=INVALID_PRICE)
+                    {
+                        cg.drawString(bestAskString, 330, 18 * i);
+                    }
+                    else
+                    {
+                        cg.drawString("     N.A.", 330, 18 * i);
+                    }
                 }
             }
         }
@@ -328,6 +379,23 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 }
             }
 
+            Double minValuation = securityValuationHistory.get(security)[0];
+            if (minValuation == null) {
+                minValuation = 0.0;
+            }
+            double maxValuation = minValuation;
+            for (int j = 0; j < HISTORY_LENGTH; j++) {
+                Double val = securityValuationHistory.get(security)[j];
+                if (val != null) {
+                    maxValuation = Math.max(maxValuation, val);
+                    minValuation = Math.min(minValuation, val);
+                }
+            }
+            if(minValuation==maxValuation)
+            {
+                minValuation*=0.95;
+                maxValuation*=1.05;
+            }
             cg.setFont(new Font("Arial", Font.PLAIN, 18));
             cg.setColor(AMBER);
             cg.drawString(security.getTicker(), 50, 18);
@@ -339,13 +407,22 @@ public class ExchangeStatus extends javax.swing.JFrame {
 //            cg.fillOval(-2, -2 +  min.intValue(), 4, 4);
 //            cg.transform(AffineTransform.getScaleInstance(600.0 / 160, 100.0 / (max - min) ));
             double cval = securityHistory.get(security)[tick % HISTORY_LENGTH];
+            double secValuationVal = securityValuationHistory.get(security)[tick % HISTORY_LENGTH];
             for (int idx = 1; idx < HISTORY_LENGTH; idx++) {
                 Double nextVal = securityHistory.get(security)[(HISTORY_LENGTH + tick - idx) % HISTORY_LENGTH];
+                Double nextValuationVal = securityValuationHistory.get(security)[(HISTORY_LENGTH + tick - idx) % HISTORY_LENGTH];
                 if (nextVal == null) {
                     break;
                 }
+                cg.setColor(Color.WHITE);
                 cg.drawLine(150 - idx * 150 / HISTORY_LENGTH, 125 - (int) ((cval - min) / (max - min) * 100), 150 - (idx + 1) * 150 / HISTORY_LENGTH, 125 - (int) ((nextVal - min) / (max - min) * 100));
+                cg.setColor(Color.GREEN);
+                cg.drawLine(150 - idx * 150 / HISTORY_LENGTH, 
+                            125 - (int)  ((secValuationVal - minValuation) / (maxValuation - minValuation) * 100), 
+                            150 - (idx + 1) * 150 / HISTORY_LENGTH, 
+                            125 - (int) ((nextValuationVal - minValuation) / (maxValuation - minValuation) * 100));
                 cval = nextVal;
+                secValuationVal = nextValuationVal;
             }
 
             cg.setTransform(ctx);

@@ -348,6 +348,22 @@ public class ExchangeServer implements Runnable {
                 out = "ASK_OUT DONE";
             }
             break;
+            case "HELP": {
+                out = "MY_CASH - output your current cash. \nOutput format: MY_CASH_OUT <cash> \n\n"
+                    + "MY_SECURITIES - output all shares you own. \nOutput format: MY_SECURITIES_OUT <ticker> <shares> <dividend_ratio> <ticker> <shares> <dividend_ratio> ... \n\n"
+                    + "MY_ORDERS - output all of your current orders bid & ask on the exchange. \nOutput format: MY_ORDERS_OUT [<BID or ASK> <price> <shares>...] \n\n"
+                    + "SECURITIES - output all securities in the exchange. \nOutput format: SECURITIES_OUT <ticker> <net_worth> <dividend_ratio> <volatility>… \n\n"
+                    + "ORDERS <ticker> - list all orders on the exchange for a ticker. \nOutput format: SECURITY_ORDERS_OUT [<BID or ASK> <price> <shares>…] \n\n"
+                    + "BID <ticker> <price> <shares> - place a new bid. \nOutput format: BID_OUT DONE or ERROR Not Enough Cash to make bid order \n\n"
+                    + "ASK <ticker> <price> <shares> - place a new ask. \nOutput format: ASK_OUT DONE or ERROR Not Enough Shares Owned \n\n"
+                    + "CLEAR_BID <ticker> - clear your bid. \nOutput format: CLEAR_BID_OUT DONE or ERROR No Security Specified \n\n" 
+                    + "CLEAR_ASK <ticker> - clear your ask. \nOutput format: CLEAR_ASK_OUT DONE or ERROR No Security Specified \n\n"
+                    + "SUBSCRIBE - subscribe to any trades you make as well as any bids. The market may automatically withdraw due to lack of funds. \n\n"
+                    + "UNSUBSRCIBE - unsubscribe from updates. \n\n"
+                    + "CLOSE_CONNECTION - end the connection gracefully.\n\n"
+                    + "HELP - show all possible commands.\n";
+            }    
+            break;
             default: {
                 if (cmd.charAt(0) != '#') {
                     out = "Unknown Command " + line;

@@ -340,7 +340,8 @@ public class ExchangeStatus extends javax.swing.JFrame {
                     minValuation = Math.min(minValuation, val);
                 }
             }
-            if(minValuation!=maxValuation)
+            // there could be rounding error so using this comparison
+            if(Math.abs(minValuation-maxValuation)>0.00000001)
             {
                 showValuationLine = true;
             }
@@ -355,10 +356,10 @@ public class ExchangeStatus extends javax.swing.JFrame {
 //            cg.fillOval(-2, -2 +  min.intValue(), 4, 4);
 //            cg.transform(AffineTransform.getScaleInstance(600.0 / 160, 100.0 / (max - min) ));
             double cval = securityHistory.get(security)[tick % HISTORY_LENGTH];
-            double secValuationVal = exchangeValuationHistory.get(security)[tick % HISTORY_LENGTH];
+            double excValuationVal = exchangeValuationHistory.get(security)[tick % HISTORY_LENGTH];
             for (int idx = 1; idx < HISTORY_LENGTH; idx++) {
                 Double nextVal = securityHistory.get(security)[(HISTORY_LENGTH + tick - idx) % HISTORY_LENGTH];
-                Double nextValuationVal = exchangeValuationHistory.get(security)[(HISTORY_LENGTH + tick - idx) % HISTORY_LENGTH];
+                Double nextExcValuationVal = exchangeValuationHistory.get(security)[(HISTORY_LENGTH + tick - idx) % HISTORY_LENGTH];
                 if (nextVal == null) {
                     break;
                 }
@@ -368,10 +369,10 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 {
                     cg.setColor(Color.GREEN);
                     cg.drawLine(150 - idx * 150 / HISTORY_LENGTH, 
-                                125 - (int)  ((secValuationVal - minValuation) / (maxValuation - minValuation) * 100), 
+                                125 - (int)  ((excValuationVal - minValuation) / (maxValuation - minValuation) * 100), 
                                 150 - (idx + 1) * 150 / HISTORY_LENGTH, 
-                                125 - (int) ((nextValuationVal - minValuation) / (maxValuation - minValuation) * 100));
-                    secValuationVal = nextValuationVal;
+                                125 - (int) ((nextExcValuationVal - minValuation) / (maxValuation - minValuation) * 100));
+                    excValuationVal = nextExcValuationVal;
                 }
                 cval = nextVal;
             }

@@ -466,8 +466,8 @@ public class Exchange implements Runnable {
         return Collections.unmodifiableMap(userUpdates);
     }
 
-    public Map<Security, Double> getSecurityValuations() {
-        return securityValuations;
+    public Map<Security, Double> getExchangeValuations() {
+        return exchangeValuations;
     }
     
     @Override

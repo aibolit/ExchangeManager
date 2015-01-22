@@ -44,7 +44,7 @@ public class Configurations {
     });
     private static final Map<String, String> securitySigniatures = new ConcurrentHashMap<>();
     private static double exchangePriceMultiplier = 200;
-    private static double visibleShares = 0.4;
+    private static double visibleShares = .4;
     private static double priceValuationAlpha = .4;
     private static double priceValuationTargetShares = .2;
     private static long timeout = 100;

@@ -466,10 +466,6 @@ public class Exchange implements Runnable {
         return Collections.unmodifiableMap(userUpdates);
     }
 
-    public Map<Security, Double> getSecurityValuations() {
-        return securityValuations;
-    }
-    
     @Override
     public synchronized String toString() {
         return "Exchange{" + "userShares=" + userShares + ", userCash=" + userCash + ", bidOrders=" + bidOrders + ", askOrders=" + askOrders + ", securities=" + securities + '}';

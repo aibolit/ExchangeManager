@@ -47,12 +47,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
             return t0.getTicker().compareTo(t1.getTicker());
         }
     });
-    private final Map<Security, Double[]> securityValuationHistory = new ConcurrentSkipListMap<>(new Comparator<Security>() {
-        @Override
-        public int compare(Security t0, Security t1) {
-            return t0.getTicker().compareTo(t1.getTicker());
-        }
-    });;
     private final int HISTORY_LENGTH = 60;
     private Long ticksRemaining;
 
@@ -65,7 +59,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
         this.exchangeServer = exchangeServer;
         for (Security security : Configurations.getSecurities()) {
             securityHistory.put(security, new Double[HISTORY_LENGTH]);
-            securityValuationHistory.put(security, new Double[HISTORY_LENGTH]);
         }
         ticksRemaining = Configurations.getTicksRemaining();
         initComponents();
@@ -162,14 +155,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 } catch (ExchangeException ex) {
                     ex.printStackTrace();
                 }
-            }
-            // *** CHRIS added - trying to graph ticker valuation history; it depends on an alpha that people don't know
-            // Need to have a simulation running to see numbers moving around; 
-            // maybe should make it a flag to hide or show this line on the graph
-            for (Map.Entry<Security, Double[]> entry : securityValuationHistory.entrySet()) {
-                Security security = entry.getKey();
-                entry.getValue()[tick % entry.getValue().length] = exchangeServer.getExchange().getSecurityValuations().get(security);
-                //System.out.println("DEBUG"+security.getTicker()+" "+entry.getValue()[tick % entry.getValue().length]);
             }
         }
         BufferedImage bi = new BufferedImage(canvas.getWidth(), canvas.getHeight(), BufferedImage.TYPE_INT_ARGB);

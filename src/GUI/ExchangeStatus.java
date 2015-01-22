@@ -47,6 +47,12 @@ public class ExchangeStatus extends javax.swing.JFrame {
             return t0.getTicker().compareTo(t1.getTicker());
         }
     });
+    private final Map<Security, Double[]> exchangeValuationHistory = new ConcurrentSkipListMap<>(new Comparator<Security>() {
+        @Override
+        public int compare(Security t0, Security t1) {
+            return t0.getTicker().compareTo(t1.getTicker());
+        }
+    });;
     private final int HISTORY_LENGTH = 60;
     private Long ticksRemaining;
 
@@ -59,6 +65,7 @@ public class ExchangeStatus extends javax.swing.JFrame {
         this.exchangeServer = exchangeServer;
         for (Security security : Configurations.getSecurities()) {
             securityHistory.put(security, new Double[HISTORY_LENGTH]);
+            exchangeValuationHistory.put(security, new Double[HISTORY_LENGTH]);
         }
         ticksRemaining = Configurations.getTicksRemaining();
         initComponents();
@@ -155,6 +162,13 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 } catch (ExchangeException ex) {
                     ex.printStackTrace();
                 }
+            }
+            // *** CHRIS added - graph ticker valuation history; it depends on an alpha that people don't know
+            // Need to have a simulation running to see numbers moving around; 
+            // maybe should make it a flag to hide or show this line on the graph
+            for (Map.Entry<Security, Double[]> entry : exchangeValuationHistory.entrySet()) {
+                Security security = entry.getKey();
+                entry.getValue()[tick % entry.getValue().length] = exchangeServer.getExchange().getExchangeValuations().get(security);
             }
         }
         BufferedImage bi = new BufferedImage(canvas.getWidth(), canvas.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -313,6 +327,24 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 }
             }
 
+            boolean showValuationLine = false;
+            Double minValuation = exchangeValuationHistory.get(security)[0];
+            if (minValuation == null) {
+                minValuation = 0.0;
+            }
+            double maxValuation = minValuation;
+            for (int j = 0; j < HISTORY_LENGTH; j++) {
+                Double val = exchangeValuationHistory.get(security)[j];
+                if (val != null) {
+                    maxValuation = Math.max(maxValuation, val);
+                    minValuation = Math.min(minValuation, val);
+                }
+            }
+            // there could be rounding error so using this comparison
+            if(Math.abs(minValuation-maxValuation)>0.00000001)
+            {
+                showValuationLine = true;
+            }
             cg.setFont(new Font("Arial", Font.PLAIN, 18));
             cg.setColor(AMBER);
             cg.drawString(security.getTicker(), 50, 18);
@@ -324,12 +356,24 @@ public class ExchangeStatus extends javax.swing.JFrame {
 //            cg.fillOval(-2, -2 +  min.intValue(), 4, 4);
 //            cg.transform(AffineTransform.getScaleInstance(600.0 / 160, 100.0 / (max - min) ));
             double cval = securityHistory.get(security)[tick % HISTORY_LENGTH];
+            double excValuationVal = exchangeValuationHistory.get(security)[tick % HISTORY_LENGTH];
             for (int idx = 1; idx < HISTORY_LENGTH; idx++) {
                 Double nextVal = securityHistory.get(security)[(HISTORY_LENGTH + tick - idx) % HISTORY_LENGTH];
+                Double nextExcValuationVal = exchangeValuationHistory.get(security)[(HISTORY_LENGTH + tick - idx) % HISTORY_LENGTH];
                 if (nextVal == null) {
                     break;
                 }
+                cg.setColor(Color.WHITE);
                 cg.drawLine(150 - idx * 150 / HISTORY_LENGTH, 125 - (int) ((cval - min) / (max - min) * 100), 150 - (idx + 1) * 150 / HISTORY_LENGTH, 125 - (int) ((nextVal - min) / (max - min) * 100));
+                if(showValuationLine==true)
+                {
+                    cg.setColor(Color.GREEN);
+                    cg.drawLine(150 - idx * 150 / HISTORY_LENGTH, 
+                                125 - (int)  ((excValuationVal - minValuation) / (maxValuation - minValuation) * 100), 
+                                150 - (idx + 1) * 150 / HISTORY_LENGTH, 
+                                125 - (int) ((nextExcValuationVal - minValuation) / (maxValuation - minValuation) * 100));
+                    excValuationVal = nextExcValuationVal;
+                }
                 cval = nextVal;
             }
 

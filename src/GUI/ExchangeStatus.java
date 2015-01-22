@@ -48,12 +48,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
             return t0.getTicker().compareTo(t1.getTicker());
         }
     });
-    private final Map<Security, Double[]> securityValuationHistory = new ConcurrentSkipListMap<>(new Comparator<Security>() {
-        @Override
-        public int compare(Security t0, Security t1) {
-            return t0.getTicker().compareTo(t1.getTicker());
-        }
-    });;
     private final int HISTORY_LENGTH = 60;
     private Long ticksRemaining;
 
@@ -66,7 +60,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
         this.exchangeServer = exchangeServer;
         for (Security security : Configurations.getSecurities()) {
             securityHistory.put(security, new Double[HISTORY_LENGTH]);
-            securityValuationHistory.put(security, new Double[HISTORY_LENGTH]);
         }
         ticksRemaining = Configurations.getTicksRemaining();
         initComponents();
@@ -170,13 +163,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 } catch (ExchangeException ex) {
                     ex.printStackTrace();
                 }
-            }
-            // *** CHRIS added - trying to graph ticker valuation history; it depends on an alpha that people don't know
-            // Need to have a simulation running to see numbers moving around; 
-            // maybe should make it a flag to hide or show this line on the graph
-            for (Map.Entry<Security, Double[]> entry : securityValuationHistory.entrySet()) {
-                Security security = entry.getKey();
-                entry.getValue()[tick % entry.getValue().length] = exchangeServer.getExchange().getSecurityValuations().get(security);
             }
         }
         BufferedImage bi = new BufferedImage(canvas.getWidth(), canvas.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -313,24 +299,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
                     bestAsk = bestOrders.get(security).get(OrderType.ASK);
                     bestAskString = String.format("%9s", bidAskFormat.format(bestAsk));
                 }
-                if(bestBidString.equals(bestAskString))
-                {
-                    if(bestAsk>bestBid)
-                    {
-                        bestBidString += "-";
-                        bestAskString += "+";
-                    }
-                    else if(bestAsk<bestBid)
-                    {
-                        bestBidString += "+";
-                        bestAskString += "-";
-                    }
-                    else // equal; happens only if user puts the same price
-                    {
-                        bestBidString += "=";
-                        bestAskString += "=";
-                    }
-                }
                 if (bestOrders.containsKey(security) && bestOrders.get(security).containsKey(OrderType.BID)) {
                     if((bestOrders.get(security).get(OrderType.BID))!=INVALID_PRICE)
                     {
@@ -379,23 +347,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 }
             }
 
-            Double minValuation = securityValuationHistory.get(security)[0];
-            if (minValuation == null) {
-                minValuation = 0.0;
-            }
-            double maxValuation = minValuation;
-            for (int j = 0; j < HISTORY_LENGTH; j++) {
-                Double val = securityValuationHistory.get(security)[j];
-                if (val != null) {
-                    maxValuation = Math.max(maxValuation, val);
-                    minValuation = Math.min(minValuation, val);
-                }
-            }
-            if(minValuation==maxValuation)
-            {
-                minValuation*=0.95;
-                maxValuation*=1.05;
-            }
             cg.setFont(new Font("Arial", Font.PLAIN, 18));
             cg.setColor(AMBER);
             cg.drawString(security.getTicker(), 50, 18);
@@ -407,22 +358,13 @@ public class ExchangeStatus extends javax.swing.JFrame {
 //            cg.fillOval(-2, -2 +  min.intValue(), 4, 4);
 //            cg.transform(AffineTransform.getScaleInstance(600.0 / 160, 100.0 / (max - min) ));
             double cval = securityHistory.get(security)[tick % HISTORY_LENGTH];
-            double secValuationVal = securityValuationHistory.get(security)[tick % HISTORY_LENGTH];
             for (int idx = 1; idx < HISTORY_LENGTH; idx++) {
                 Double nextVal = securityHistory.get(security)[(HISTORY_LENGTH + tick - idx) % HISTORY_LENGTH];
-                Double nextValuationVal = securityValuationHistory.get(security)[(HISTORY_LENGTH + tick - idx) % HISTORY_LENGTH];
                 if (nextVal == null) {
                     break;
                 }
-                cg.setColor(Color.WHITE);
                 cg.drawLine(150 - idx * 150 / HISTORY_LENGTH, 125 - (int) ((cval - min) / (max - min) * 100), 150 - (idx + 1) * 150 / HISTORY_LENGTH, 125 - (int) ((nextVal - min) / (max - min) * 100));
-                cg.setColor(Color.GREEN);
-                cg.drawLine(150 - idx * 150 / HISTORY_LENGTH, 
-                            125 - (int)  ((secValuationVal - minValuation) / (maxValuation - minValuation) * 100), 
-                            150 - (idx + 1) * 150 / HISTORY_LENGTH, 
-                            125 - (int) ((nextValuationVal - minValuation) / (maxValuation - minValuation) * 100));
                 cval = nextVal;
-                secValuationVal = nextValuationVal;
             }
 
             cg.setTransform(ctx);

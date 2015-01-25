@@ -52,7 +52,8 @@ public class ExchangeStatus extends javax.swing.JFrame {
         public int compare(Security t0, Security t1) {
             return t0.getTicker().compareTo(t1.getTicker());
         }
-    });;
+    });
+    ;
     private final int HISTORY_LENGTH = 60;
     private Long ticksRemaining;
 
@@ -183,7 +184,7 @@ public class ExchangeStatus extends javax.swing.JFrame {
         //cg.transform(AffineTransform.getScaleInstance(2,2.0));
 
         AffineTransform root = cg.getTransform();
-        
+
         DecimalFormat timeFormat = new DecimalFormat();
         timeFormat.setMaximumIntegerDigits(2);
         timeFormat.setMinimumIntegerDigits(2);
@@ -191,11 +192,10 @@ public class ExchangeStatus extends javax.swing.JFrame {
         cg.setFont(new Font("Monospaced", Font.PLAIN, 24));
         cg.setColor(Color.WHITE);
         cg.drawString(timeFormat.format(ticksRemaining / 3600) + ":" + timeFormat.format((ticksRemaining / 60) % 60) + ":" + timeFormat.format(ticksRemaining % 60), 4, 28);
-        
-        
+
         cg.transform(AffineTransform.getTranslateInstance(230, 50));
         cg.transform(AffineTransform.getScaleInstance(1.5, 1.5));
-        
+
         cg.setFont(new Font("Utsaah", Font.BOLD, 54));
         cg.setColor(Color.DARK_GRAY);
         cg.drawString("Bloomberg", 34, 48);
@@ -341,8 +341,7 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 }
             }
             // there could be rounding error so using this comparison
-            if(Math.abs(minValuation-maxValuation)>0.00000001)
-            {
+            if (Math.abs(minValuation - maxValuation) > 0.00000001) {
                 showValuationLine = true;
             }
             cg.setFont(new Font("Arial", Font.PLAIN, 18));
@@ -365,13 +364,12 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 }
                 cg.setColor(Color.WHITE);
                 cg.drawLine(150 - idx * 150 / HISTORY_LENGTH, 125 - (int) ((cval - min) / (max - min) * 100), 150 - (idx + 1) * 150 / HISTORY_LENGTH, 125 - (int) ((nextVal - min) / (max - min) * 100));
-                if(showValuationLine==true)
-                {
+                if (showValuationLine == true) {
                     cg.setColor(Color.GREEN);
-                    cg.drawLine(150 - idx * 150 / HISTORY_LENGTH, 
-                                125 - (int)  ((excValuationVal - minValuation) / (maxValuation - minValuation) * 100), 
-                                150 - (idx + 1) * 150 / HISTORY_LENGTH, 
-                                125 - (int) ((nextExcValuationVal - minValuation) / (maxValuation - minValuation) * 100));
+                    cg.drawLine(150 - idx * 150 / HISTORY_LENGTH,
+                            125 - (int) ((excValuationVal - minValuation) / (maxValuation - minValuation) * 100),
+                            150 - (idx + 1) * 150 / HISTORY_LENGTH,
+                            125 - (int) ((nextExcValuationVal - minValuation) / (maxValuation - minValuation) * 100));
                     excValuationVal = nextExcValuationVal;
                 }
                 cval = nextVal;

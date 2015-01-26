@@ -38,7 +38,6 @@ import javax.swing.DefaultListModel;
  * @author Sasa
  */
 public class ExchangeStatus extends javax.swing.JFrame {
-
     private static double INVALID_PRICE = -1.0;
     private static final long serialVersionUID = 1L;
     private final ExchangeServer exchangeServer;

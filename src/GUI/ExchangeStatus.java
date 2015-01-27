@@ -29,9 +29,6 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.DefaultListModel;
 
 /**
  *
@@ -150,7 +147,9 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 bestOrders.put(entry.getKey(), new EnumMap<OrderType, Double>(OrderType.class));
                 try {
                     for (Map.Entry<OrderType, SortedSet<Order>> orderEntry : exchangeServer.getExchange().getOrderStatus(security.getTicker()).entrySet()) {
-                        bestOrders.get(security).put(orderEntry.getKey(), orderEntry.getValue().first().getPrice());
+                        if (!orderEntry.getValue().isEmpty()) {
+                            bestOrders.get(security).put(orderEntry.getKey(), orderEntry.getValue().first().getPrice());
+                        }
                     }
                 } catch (ExchangeException ex) {
                     ex.printStackTrace();
@@ -169,7 +168,7 @@ public class ExchangeStatus extends javax.swing.JFrame {
         //cg.transform(AffineTransform.getScaleInstance(2,2.0));
 
         AffineTransform root = cg.getTransform();
-        
+
         DecimalFormat timeFormat = new DecimalFormat();
         timeFormat.setMaximumIntegerDigits(2);
         timeFormat.setMinimumIntegerDigits(2);
@@ -177,11 +176,10 @@ public class ExchangeStatus extends javax.swing.JFrame {
         cg.setFont(new Font("Monospaced", Font.PLAIN, 24));
         cg.setColor(Color.WHITE);
         cg.drawString(timeFormat.format(ticksRemaining / 3600) + ":" + timeFormat.format((ticksRemaining / 60) % 60) + ":" + timeFormat.format(ticksRemaining % 60), 4, 28);
-        
-        
+
         cg.transform(AffineTransform.getTranslateInstance(230, 50));
         cg.transform(AffineTransform.getScaleInstance(1.5, 1.5));
-        
+
         cg.setFont(new Font("Utsaah", Font.BOLD, 54));
         cg.setColor(Color.DARK_GRAY);
         cg.drawString("Bloomberg", 34, 48);
@@ -281,9 +279,13 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 cg.setColor(Color.WHITE);
                 if (bestOrders.containsKey(security) && bestOrders.get(security).containsKey(OrderType.BID)) {
                     cg.drawString(String.format("%9s", bidAskFormat.format(bestOrders.get(security).get(OrderType.BID))), 220, 18 * i);
+                } else {
+                    cg.drawString("     N.A.", 220, 18 * i);
                 }
                 if (bestOrders.containsKey(security) && bestOrders.get(security).containsKey(OrderType.ASK)) {
                     cg.drawString(String.format("%9s", bidAskFormat.format(bestOrders.get(security).get(OrderType.ASK))), 330, 18 * i);
+                } else {
+                    cg.drawString("     N.A.", 330, 18 * i);
                 }
             }
         }

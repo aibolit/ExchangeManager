@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package ExchangeObjects;
 
 /**
@@ -11,5 +10,6 @@ package ExchangeObjects;
  * @author Sasa
  */
 public abstract class ProbabilityDistribution {
+
     public abstract double nextValue();
 }

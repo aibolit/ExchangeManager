@@ -53,6 +53,7 @@ public class Configurations {
     private static double exchangeBuyFactor = 2, exchangeSellFactor = .5;
     private static double exchangeValuationAlpha = .03;
     private static Long ticksRemaining = null;
+    private static double dividendRegenFactor = .002;
 
     private static void init() {
         users.clear();
@@ -132,6 +133,10 @@ public class Configurations {
         return ticksRemaining;
     }
 
+    public static double getDividendRegenFactor() {
+        return dividendRegenFactor;
+    }
+
     public static void readCongfigs(String file) throws IOException {
         init();
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -187,6 +192,9 @@ public class Configurations {
                     case "ticks-remaining":
                         ticksRemaining = Long.parseLong(st.nextToken());
                         break;
+                    case "dividend-regen-factor":
+                        dividendGrowthFactor = Double.parseDouble(st.nextToken());
+                        break;
                     default:
                         if (line.charAt(0) != '#') {
                             System.out.println("Oops no such setting " + line);
@@ -196,8 +204,9 @@ public class Configurations {
             }
         }
     }
+
     public static void saveConfigurations(String file) throws IOException {
-        try(PrintWriter pw = new PrintWriter(new File(file))) {
+        try (PrintWriter pw = new PrintWriter(new File(file))) {
             pw.print(getConfigString());
         }
     }
@@ -229,7 +238,7 @@ public class Configurations {
                 throw new AssertionError();
         }
     }
-    
+
     public static String getConfigString() {
         StringBuilder out = new StringBuilder();
         out.append("port ").append(port).append("\nhost ").append(host).append("\n");

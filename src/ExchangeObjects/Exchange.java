@@ -25,6 +25,7 @@ import java.util.logging.Logger;
  * @author Sasa
  */
 public class Exchange implements Runnable {
+
     private final Map<String, Map<Security, Integer>> userShares = new ConcurrentHashMap<>();
     private final Map<String, Map<Security, Double>> userDivdendFactors = new ConcurrentHashMap<>();
     private final Map<String, Double> userCash = new ConcurrentHashMap<>();
@@ -45,7 +46,7 @@ public class Exchange implements Runnable {
             userDivdendFactors.put(user, new ConcurrentHashMap<Security, Double>());
             for (Security security : Configurations.getSecurities()) {
                 userShares.get(user).put(security, 0);
-                userDivdendFactors.get(user).put(security, 0.0);
+                userDivdendFactors.get(user).put(security, 1.0);
             }
             userCash.put(user, Configurations.getInitialCash());
         }
@@ -56,18 +57,18 @@ public class Exchange implements Runnable {
             bidOrders.put(security, new ConcurrentSkipListSet<Order>());
             askOrders.put(security, new ConcurrentSkipListSet<Order>());
             askOrders.get(security).add(new Order(
-                Configurations.EXCHANGE_USER,
-                security,
-                security.getTotalShares(),
-                OrderType.ASK,
-                initialPrice * Configurations.getExchangeBuyFactor()
+                    Configurations.EXCHANGE_USER,
+                    security,
+                    security.getTotalShares(),
+                    OrderType.ASK,
+                    initialPrice * Configurations.getExchangeBuyFactor()
             ));
             bidOrders.get(security).add(new Order(
-                Configurations.EXCHANGE_USER,
-                security,
-                security.getTotalShares(),
-                OrderType.BID,
-                initialPrice * Configurations.getExchangeSellFactor()
+                    Configurations.EXCHANGE_USER,
+                    security,
+                    security.getTotalShares(),
+                    OrderType.BID,
+                    initialPrice * Configurations.getExchangeSellFactor()
             ));
             securityValuations.put(security, initialPrice);
             exchangeValuations.put(security, initialPrice);
@@ -97,7 +98,7 @@ public class Exchange implements Runnable {
     }
 
     private synchronized void nextRound() {
-        if(!isRunning) return;
+        if (!isRunning) return;
         for (Map.Entry<String, Map<Security, Integer>> userSharesEntry : userShares.entrySet()) {
             String user = userSharesEntry.getKey();
             for (Map.Entry<Security, Integer> entry : userSharesEntry.getValue().entrySet()) {
@@ -106,9 +107,13 @@ public class Exchange implements Runnable {
                 userCash.put(user, userCash.get(user) + entry.getKey().dividendPayout() * shares * userDivdendFactors.get(user).get(security));
             }
         }
-        for (Map<Security, Double> entry : userDivdendFactors.values()) {
-            for (Security security : entry.keySet()) {
-                entry.put(security, entry.get(security) * Configurations.getDividendGrowthFactor());
+
+        for (Map.Entry<String, Map<Security, Double>> entrySet : userDivdendFactors.entrySet()) {
+            String user = entrySet.getKey();
+            Map<Security, Double> secShares = entrySet.getValue();
+            for (Map.Entry<Security, Double> secData : secShares.entrySet()) {
+                Security security = secData.getKey();
+                secShares.put(security, Math.min(1, Math.max(0, userShares.get(user).get(security) == 0 ? secData.getValue() + Configurations.getDividendRegenFactor() : secData.getValue() * Configurations.getDividendGrowthFactor())));
             }
         }
         for (Security security : Configurations.getSecurities()) {
@@ -120,19 +125,19 @@ public class Exchange implements Runnable {
                 }
             }
             double newValuation
-                = Configurations.getExchangeValuationAlpha() * securityValuations.get(security)
-                + (1 - Configurations.getExchangeValuationAlpha()) * exchangeValuations.get(security);
+                    = Configurations.getExchangeValuationAlpha() * securityValuations.get(security)
+                    + (1 - Configurations.getExchangeValuationAlpha()) * exchangeValuations.get(security);
             exchangeValuations.put(security, newValuation);
 
             int exchangeShares = userShares.get(Configurations.EXCHANGE_USER).get(security);
             if (exchangeShares > 0) {
                 try {
                     Map<String, List<String>> localUserUpdates = newOrder(new Order(
-                        Configurations.EXCHANGE_USER,
-                        security,
-                        exchangeShares,
-                        OrderType.ASK,
-                        newValuation * Configurations.getExchangeBuyFactor()
+                            Configurations.EXCHANGE_USER,
+                            security,
+                            exchangeShares,
+                            OrderType.ASK,
+                            newValuation * Configurations.getExchangeBuyFactor()
                     ));
                     addUserUpdates(localUserUpdates);
                 } catch (ExchangeException ex) {
@@ -141,11 +146,11 @@ public class Exchange implements Runnable {
             }
             try {
                 Map<String, List<String>> localUserUpdates = newOrder(new Order(
-                    Configurations.EXCHANGE_USER,
-                    security,
-                    security.getTotalShares(),
-                    OrderType.BID,
-                    newValuation * Configurations.getExchangeSellFactor()
+                        Configurations.EXCHANGE_USER,
+                        security,
+                        security.getTotalShares(),
+                        OrderType.BID,
+                        newValuation * Configurations.getExchangeSellFactor()
                 ));
                 addUserUpdates(localUserUpdates);
             } catch (ExchangeException ex) {
@@ -238,11 +243,6 @@ public class Exchange implements Runnable {
 
     private synchronized void changeUserShares(String user, Security security, int deltaShares) {
         int shares = userShares.get(user).get(security);
-        if (shares == 0 && shares + deltaShares != 0) {
-            userDivdendFactors.get(user).put(security, 1.0);
-        } else if (shares != 0 && shares + deltaShares == 0) {
-            userDivdendFactors.get(user).put(security, 0.0);
-        }
         userShares.get(user).put(security, shares + deltaShares);
     }
 
@@ -321,7 +321,7 @@ public class Exchange implements Runnable {
             bidOrders.get(security).add(newBidOrder);
         }
 
-        //update orders 
+        //update orders
         if (sharesLeft > 0) {
             askOrders.get(security).add(new Order(askOrder, sharesLeft));
         }
@@ -397,7 +397,7 @@ public class Exchange implements Runnable {
             askOrders.get(security).add(newAskOrder);
         }
 
-        //update orders 
+        //update orders
         if (sharesLeft > 0) {
             bidOrders.get(security).add(new Order(bidOrder, sharesLeft));
         }
@@ -441,9 +441,9 @@ public class Exchange implements Runnable {
         double currentPrice = securityValuations.get(security);
         double sharesRatio = Math.min(1.0, 1.0 * shares / (security.getTotalShares() * Configurations.getPriceValuationTargetShares()));
         double newValue
-            = Configurations.getPriceValuationAlpha() * (sharesRatio) * price
-            + Configurations.getPriceValuationAlpha() * (1.0 - sharesRatio) * currentPrice
-            + (1.0 - Configurations.getPriceValuationAlpha()) * currentPrice;
+                = Configurations.getPriceValuationAlpha() * (sharesRatio) * price
+                + Configurations.getPriceValuationAlpha() * (1.0 - sharesRatio) * currentPrice
+                + (1.0 - Configurations.getPriceValuationAlpha()) * currentPrice;
         securityValuations.put(security, newValue);
     }
 

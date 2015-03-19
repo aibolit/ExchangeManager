@@ -193,7 +193,7 @@ public class Configurations {
                         ticksRemaining = Long.parseLong(st.nextToken());
                         break;
                     case "dividend-regen-factor":
-                        dividendGrowthFactor = Double.parseDouble(st.nextToken());
+                        dividendRegenFactor = Double.parseDouble(st.nextToken());
                         break;
                     default:
                         if (line.charAt(0) != '#') {

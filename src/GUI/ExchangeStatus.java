@@ -163,7 +163,9 @@ public class ExchangeStatus extends javax.swing.JFrame {
         cg.setColor(Color.BLACK);
         cg.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-        int lSize = Math.max(userScores.size(), Configurations.getSecurities().size());
+        
+        int userDnum = userScores.size() / 2 + userScores.size() % 2;
+        int lSize = Math.max(userDnum, Configurations.getSecurities().size());
         cg.transform(AffineTransform.getScaleInstance(1.0 * canvas.getWidth() / 764, 1.0 * canvas.getHeight() / (450 + 18 * lSize)));
         //cg.transform(AffineTransform.getScaleInstance(2,2.0));
 
@@ -200,6 +202,8 @@ public class ExchangeStatus extends javax.swing.JFrame {
         cg.setTransform(root);
         cg.transform(AffineTransform.getTranslateInstance(0, 150));
         AffineTransform gridUsersTx = cg.getTransform();
+        cg.transform(AffineTransform.getScaleInstance(.5, 1));
+
         cg.setColor(Color.DARK_GRAY);
         cg.fillRect(0, 0, 300, 22);
 
@@ -227,6 +231,39 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 cg.setFont(new Font("Monospaced", Font.PLAIN, 18));
                 cg.setColor(Color.WHITE);
                 cg.drawString(String.format("%12s", scoreFormat.format(userScores.get(i).score)), 160, 18 * i);
+            }
+        }
+        cg.setColor(Color.DARK_GRAY);
+        cg.drawRect(0, -40, 300, 26 + 18 * lSize);
+
+        cg.setTransform(gridUsersTx);
+        cg.transform(AffineTransform.getTranslateInstance(160, 0));
+        cg.transform(AffineTransform.getScaleInstance(.5, 1));
+
+        cg.setColor(Color.DARK_GRAY);
+        cg.fillRect(0, 0, 300, 22);
+
+        cg.setColor(Color.WHITE);
+        cg.setFont(new Font("Arial", Font.BOLD, 18));
+        cg.drawString("Team Name", 8, 18);
+        cg.drawString("Net Worth", 205, 18);
+
+        cg.transform(AffineTransform.getTranslateInstance(0, 40));
+        cg.setColor(AMBER);
+        cg.setFont(new Font("Arial", Font.PLAIN, 16));
+        for (int i = lSize - 1; i >= 0; i--) {
+            int j = lSize  + i;
+            if ((i % 2) == 1) {
+                cg.setColor(VERY_DARK_GRAY);
+                cg.fillRect(0, 18 * (i - 1), 300, 18);
+            }
+            if (j < userScores.size()) {
+                cg.setFont(new Font("Arial", Font.PLAIN, 18));
+                cg.setColor(AMBER);
+                cg.drawString(userScores.get(j).user, 8, 18 * i);
+                cg.setFont(new Font("Monospaced", Font.PLAIN, 18));
+                cg.setColor(Color.WHITE);
+                cg.drawString(String.format("%12s", scoreFormat.format(userScores.get(j).score)), 160, 18 * i);
             }
         }
         cg.setColor(Color.DARK_GRAY);

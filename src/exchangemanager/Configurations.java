@@ -47,7 +47,7 @@ public class Configurations {
     private static double visibleShares = .4;
     private static double priceValuationAlpha = .4;
     private static double priceValuationTargetShares = .2;
-    private static long timeout = 100;
+    private static long timeout = 50;
     private static int maxConnectionsPerUser = 3;
     private static double dividendGrowthFactor = .996288;
     private static double exchangeBuyFactor = 2, exchangeSellFactor = .5;

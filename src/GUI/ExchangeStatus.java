@@ -68,9 +68,10 @@ public class ExchangeStatus extends javax.swing.JFrame {
                 while (true) {
                     if (lastRun == false && exchangeServer.getExchange().isRunning()) {
                         for (Security security : securityHistory.keySet()) {
-                            securityHistory.put(security, new Double[HISTORY_LENGTH]);
+                            for (int i = 0; i < securityHistory.get(security).length; i++) {
+                                securityHistory.get(security)[i] = null;
+                            }
                         }
-                        //tick = 0;
                     }
                     try {
                         final int tickVal = tick;
@@ -309,7 +310,7 @@ public class ExchangeStatus extends javax.swing.JFrame {
                     lastValue = currentValue;
                 }
 
-                cg.setColor(currentValue == lastValue ? Color.WHITE : currentValue > lastValue ? Color.GREEN : Color.RED);
+                cg.setColor(currentValue == lastValue || !exchangeServer.getExchange().isRunning() ? Color.WHITE : currentValue > lastValue ? Color.GREEN : Color.RED);
                 cg.setFont(new Font("Monospaced", Font.PLAIN, 18));
                 cg.drawString(String.format("%10s", netWorthFormat.format(currentValue)), 100, 18 * i);
 
@@ -341,7 +342,7 @@ public class ExchangeStatus extends javax.swing.JFrame {
             Security security = secs.get(i);
             Double min = securityHistory.get(security)[0];
             if (min == null) {
-                min = 0.0;
+                min = security.getNetWorth();
             }
             double max = min;
             for (int j = 0; j < HISTORY_LENGTH; j++) {

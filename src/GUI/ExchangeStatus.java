@@ -77,9 +77,7 @@ public class ExchangeStatus extends javax.swing.JFrame {
                         ex.printStackTrace();
                     }
                     if (exchangeServer.getExchange().isRunning()) {
-                        if (exchangeServer.getExchange().isRunning()) {
-                            tick++;
-                        }
+                        tick++;
                     }
 
                     try {

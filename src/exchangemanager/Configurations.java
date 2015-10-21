@@ -53,6 +53,7 @@ public class Configurations {
     private static double exchangeBuyFactor = 2, exchangeSellFactor = .5;
     private static double exchangeValuationAlpha = .03;
     private static Long ticksRemaining = null;
+    private static Long downtimeTicks = null;
     private static double dividendRegenFactor = .002;
 
     private static void init() {
@@ -133,6 +134,10 @@ public class Configurations {
         return ticksRemaining;
     }
 
+    public static Long getDowntimeTicks() {
+        return downtimeTicks;
+    }
+
     public static double getDividendRegenFactor() {
         return dividendRegenFactor;
     }
@@ -191,6 +196,9 @@ public class Configurations {
                         break;
                     case "ticks-remaining":
                         ticksRemaining = Long.parseLong(st.nextToken());
+                        break;
+                    case "downtime-ticks":
+                        downtimeTicks = Long.parseLong(st.nextToken());
                         break;
                     case "dividend-regen-factor":
                         dividendRegenFactor = Double.parseDouble(st.nextToken());

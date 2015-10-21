@@ -66,8 +66,12 @@ public class Security {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
         final Security other = (Security) obj;
         return Objects.equals(this.ticker, other.getTicker());
     }

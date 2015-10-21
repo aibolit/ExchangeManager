@@ -45,7 +45,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
         }
     });
     private final int HISTORY_LENGTH = 60;
-    private Long ticksRemaining;
 
     /**
      * Creates new form ExchangeStatus
@@ -57,7 +56,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
         for (Security security : Configurations.getSecurities()) {
             securityHistory.put(security, new Double[HISTORY_LENGTH]);
         }
-        ticksRemaining = Configurations.getTicksRemaining();
         initComponents();
     }
 
@@ -67,25 +65,28 @@ public class ExchangeStatus extends javax.swing.JFrame {
             public void run() {
                 int tick = 0;
                 while (true) {
-                    if (exchangeServer.isIsRunning()) {
-                        try {
-                            final int tickVal = tick;
-                            java.awt.EventQueue.invokeAndWait(new Runnable() {
-                                @Override
-                                public void run() {
-                                    refreshData(tickVal);
-                                }
-                            });
-                        } catch (InterruptedException | InvocationTargetException ex) {
-                            ex.printStackTrace();
+                    try {
+                        final int tickVal = tick;
+                        java.awt.EventQueue.invokeAndWait(new Runnable() {
+                            @Override
+                            public void run() {
+                                refreshData(tickVal);
+                            }
+                        });
+                    } catch (InterruptedException | InvocationTargetException ex) {
+                        ex.printStackTrace();
+                    }
+                    if (exchangeServer.getExchange().isRunning()) {
+                        if (exchangeServer.getExchange().isRunning()) {
+                            tick++;
                         }
                     }
+
                     try {
                         Thread.sleep(1000 - ((System.currentTimeMillis() + 255) % 1000));
                     } catch (InterruptedException ex) {
                         ex.printStackTrace();
                     }
-                    tick++;
                 }
             }
 
@@ -120,13 +121,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
             @Override
             public String toString() {
                 return user + " " + score;
-            }
-        }
-        if (ticksRemaining != null) {
-            if (ticksRemaining > 0) {
-                ticksRemaining--;
-            } else {
-                exchangeServer.setIsRunning(false);
             }
         }
 
@@ -177,12 +171,13 @@ public class ExchangeStatus extends javax.swing.JFrame {
         timeFormat.setMaximumFractionDigits(0);
         cg.setFont(new Font("Monospaced", Font.PLAIN, 24));
         cg.setColor(Color.WHITE);
+        long ticksRemaining = exchangeServer.getExchange().getTicksRemaining();
         cg.drawString(timeFormat.format(ticksRemaining / 3600) + ":" + timeFormat.format((ticksRemaining / 60) % 60) + ":" + timeFormat.format(ticksRemaining % 60), 4, 28);
 
-        cg.transform(AffineTransform.getTranslateInstance(230, 50));
+        cg.transform(AffineTransform.getTranslateInstance(180, 50));
         cg.transform(AffineTransform.getScaleInstance(1.5, 1.5));
 
-        cg.setFont(new Font("Utsaah", Font.BOLD, 54));
+        cg.setFont(new Font("Ebrima", Font.BOLD, 50));
         cg.setColor(Color.DARK_GRAY);
         cg.drawString("Bloomberg", 34, 48);
         cg.setColor(Color.WHITE);
@@ -437,7 +432,7 @@ public class ExchangeStatus extends javax.swing.JFrame {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {

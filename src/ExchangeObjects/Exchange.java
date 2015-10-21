@@ -37,8 +37,10 @@ public class Exchange implements Runnable {
     private final Map<Security, Double> exchangeValuations = new ConcurrentHashMap<>();
     private final Map<String, List<String>> userUpdates = new ConcurrentHashMap<>();
     private volatile boolean isRunning = true;
+    private volatile Long ticksRemaining;
 
     public Exchange() throws ExchangeException {
+        ticksRemaining = Configurations.getTicksRemaining();
         orders.put(OrderType.BID, bidOrders);
         orders.put(OrderType.ASK, askOrders);
         for (String user : Configurations.getUsers()) {
@@ -76,11 +78,15 @@ public class Exchange implements Runnable {
         userCash.put(Configurations.EXCHANGE_USER, Double.POSITIVE_INFINITY);
     }
 
-    public synchronized boolean isRun() {
+    public synchronized boolean isRunning() {
         return isRunning;
     }
 
-    public synchronized void setRun(boolean run) {
+    public synchronized Long getTicksRemaining() {
+        return ticksRemaining;
+    }
+
+    public synchronized void setIsRunning(boolean run) {
         this.isRunning = run;
     }
 
@@ -98,7 +104,27 @@ public class Exchange implements Runnable {
     }
 
     private synchronized void nextRound() {
-        if (!isRunning) return;
+        if (!isRunning) {
+            if (ticksRemaining != null) {
+                ticksRemaining--;
+            } else {
+                return;
+            }
+            if (ticksRemaining <= 0) {
+                ticksRemaining = Configurations.getTicksRemaining();
+                isRunning = true;
+            } else {
+                return;
+            }
+        } else {
+            if (ticksRemaining != null) {
+                ticksRemaining--;
+            }
+            if (ticksRemaining <= 0) {
+                ticksRemaining = Configurations.getDowntimeTicks();
+                isRunning = false;
+            }
+        }
         for (Map.Entry<String, Map<Security, Integer>> userSharesEntry : userShares.entrySet()) {
             String user = userSharesEntry.getKey();
             for (Map.Entry<Security, Integer> entry : userSharesEntry.getValue().entrySet()) {
@@ -473,13 +499,11 @@ public class Exchange implements Runnable {
 
     @Override
     public void run() {
-        while (isRunning) {
+        while (true) {
             try {
                 Thread.sleep(1000 - (System.currentTimeMillis() % 1000));
-                if (isRunning) {
-                    nextRound();
-                    //System.out.println(this);
-                }
+                System.out.println(isRunning + " " + ticksRemaining);
+                nextRound();
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }

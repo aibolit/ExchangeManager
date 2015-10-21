@@ -5,7 +5,7 @@ def run(user, password, *commands):
     HOST, PORT = "codebb.cloudapp.net", 17429
     
     data=user + " " + password + "\n" + "\n".join(commands) + "\nCLOSE_CONNECTION\n"
-
+    
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

@@ -17,6 +17,7 @@ public class Security {
     private final double dividend;
     private final double volatility;
     private double netWorth;
+    private final double initialNetWorth;
     private final ProbabilityDistribution outlook;
     private final int totalShares;
 
@@ -26,7 +27,7 @@ public class Security {
         this.volatility = volatility;
         this.outlook = outlook;
         this.totalShares = totalShares;
-        this.netWorth = netWorth;
+        this.netWorth = this.initialNetWorth = netWorth;
     }
 
     public String getTicker() {
@@ -55,6 +56,10 @@ public class Security {
 
     public double nextRound() {
         return netWorth += netWorth * outlook.nextValue() * volatility;
+    }
+
+    public void reset() {
+        this.netWorth = this.initialNetWorth;
     }
 
     @Override

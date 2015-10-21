@@ -39,10 +39,18 @@ public class Exchange implements Runnable {
     private volatile boolean isRunning = true;
     private volatile Long ticksRemaining;
 
-    public Exchange() throws ExchangeException {
-        ticksRemaining = Configurations.getTicksRemaining();
-        orders.put(OrderType.BID, bidOrders);
-        orders.put(OrderType.ASK, askOrders);
+    private synchronized void reset() throws ExchangeException {
+        bidOrders.clear();
+        askOrders.clear();
+
+        userShares.clear();
+        userDivdendFactors.clear();
+        userCash.clear();
+
+        securityValuations.clear();
+        exchangeValuations.clear();
+        userUpdates.clear();
+
         for (String user : Configurations.getUsers()) {
             userShares.put(user, new ConcurrentHashMap<Security, Integer>());
             userDivdendFactors.put(user, new ConcurrentHashMap<Security, Double>());
@@ -53,6 +61,7 @@ public class Exchange implements Runnable {
             userCash.put(user, Configurations.getInitialCash());
         }
         for (Security security : Configurations.getSecurities()) {
+            security.reset();
             double initialPrice = security.getNetWorth() * security.getDividend() / security.getTotalShares() * Configurations.getExchangePriceMultiplier();
             userShares.get(Configurations.EXCHANGE_USER).put(security, security.getTotalShares());
             securities.put(security.getTicker(), security);
@@ -76,6 +85,14 @@ public class Exchange implements Runnable {
             exchangeValuations.put(security, initialPrice);
         }
         userCash.put(Configurations.EXCHANGE_USER, Double.POSITIVE_INFINITY);
+    }
+
+    public Exchange() throws ExchangeException {
+        ticksRemaining = Configurations.getTicksRemaining();
+        orders.put(OrderType.BID, bidOrders);
+        orders.put(OrderType.ASK, askOrders);
+
+        reset();
     }
 
     public synchronized boolean isRunning() {
@@ -112,6 +129,11 @@ public class Exchange implements Runnable {
             }
             if (ticksRemaining <= 0) {
                 ticksRemaining = Configurations.getTicksRemaining();
+                try {
+                    reset();
+                } catch (ExchangeException ex) {
+                    ex.printStackTrace();
+                }
                 isRunning = true;
             } else {
                 return;
@@ -502,7 +524,6 @@ public class Exchange implements Runnable {
         while (true) {
             try {
                 Thread.sleep(1000 - (System.currentTimeMillis() % 1000));
-                System.out.println(isRunning + " " + ticksRemaining);
                 nextRound();
             } catch (InterruptedException ex) {
                 ex.printStackTrace();

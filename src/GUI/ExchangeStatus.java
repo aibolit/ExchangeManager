@@ -64,7 +64,14 @@ public class ExchangeStatus extends javax.swing.JFrame {
             @Override
             public void run() {
                 int tick = 0;
+                boolean lastRun = false;
                 while (true) {
+                    if (lastRun == false && exchangeServer.getExchange().isRunning()) {
+                        for (Security security : securityHistory.keySet()) {
+                            securityHistory.put(security, new Double[HISTORY_LENGTH]);
+                        }
+                        //tick = 0;
+                    }
                     try {
                         final int tickVal = tick;
                         java.awt.EventQueue.invokeAndWait(new Runnable() {
@@ -80,6 +87,7 @@ public class ExchangeStatus extends javax.swing.JFrame {
                         tick++;
                     }
 
+                    lastRun = exchangeServer.getExchange().isRunning();
                     try {
                         Thread.sleep(1000 - ((System.currentTimeMillis() + 255) % 1000));
                     } catch (InterruptedException ex) {
@@ -155,7 +163,6 @@ public class ExchangeStatus extends javax.swing.JFrame {
         cg.setColor(Color.BLACK);
         cg.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-        
         int userDnum = userScores.size() / 2 + userScores.size() % 2;
         int lSize = Math.max(userDnum, Configurations.getSecurities().size());
         cg.transform(AffineTransform.getScaleInstance(1.0 * canvas.getWidth() / 764, 1.0 * canvas.getHeight() / (450 + 18 * lSize)));
@@ -245,7 +252,7 @@ public class ExchangeStatus extends javax.swing.JFrame {
         cg.setColor(AMBER);
         cg.setFont(new Font("Arial", Font.PLAIN, 16));
         for (int i = lSize - 1; i >= 0; i--) {
-            int j = lSize  + i;
+            int j = lSize + i;
             if ((i % 2) == 1) {
                 cg.setColor(VERY_DARK_GRAY);
                 cg.fillRect(0, 18 * (i - 1), 300, 18);

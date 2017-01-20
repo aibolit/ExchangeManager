@@ -352,7 +352,7 @@ public class ExchangeServer implements Runnable {
             case "HELP": {
                 out = "DISCLAIMER: The HELP command returns more than 1 line and may negatively impact programs dependend on some getline() function. You shouldn't be calling HELP in your programs anyways. \n\n"
                         + "MY_CASH - output your current cash. \nOutput format: MY_CASH_OUT <cash> \n\n"
-                        + "MY_SECURITIES - output all shares you own. \nOutput format: MY_SECURITIES_OUT <ticker> <shares> <dividend_ratio> <ticker> <shares> <dividend_ratio> ... \n\n"
+                        + "MY_SECURITIES - output all shares you own. \nOutput format: MY_SECURITIES_OUT <ticker> <shares> <dividend> <ticker> <shares> <dividend_ratio> ... \n\n"
                         + "MY_ORDERS - output all of your current orders bid & ask on the exchange. \nOutput format: MY_ORDERS_OUT [<BID or ASK> <price> <shares>...] \n\n"
                         + "SECURITIES - output all securities in the exchange. \nOutput format: SECURITIES_OUT <ticker> <net_worth> <dividend_ratio> <volatility>… \n\n"
                         + "ORDERS <ticker> - list all orders on the exchange for a ticker. \nOutput format: SECURITY_ORDERS_OUT [<BID or ASK> <price> <shares>…] \n\n"

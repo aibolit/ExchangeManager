@@ -147,6 +147,8 @@ public class Configurations {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
+                if (line.trim().length() == 0) continue;
+                //System.out.println(line);
                 StringTokenizer st = new StringTokenizer(line);
                 switch (st.nextToken()) {
                     case "port":

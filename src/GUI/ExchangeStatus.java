@@ -14,6 +14,7 @@ import Server.ExchangeServer;
 import exchangemanager.Configurations;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -178,7 +179,13 @@ public class ExchangeStatus extends javax.swing.JFrame {
         cg.setFont(new Font("Monospaced", Font.PLAIN, 24));
         cg.setColor(Color.WHITE);
         long ticksRemaining = exchangeServer.getExchange().getTicksRemaining();
-        cg.drawString(timeFormat.format(ticksRemaining / 3600) + ":" + timeFormat.format((ticksRemaining / 60) % 60) + ":" + timeFormat.format(ticksRemaining % 60), 4, 28);
+        String tickTime = timeFormat.format(ticksRemaining / 3600) + ":" + timeFormat.format((ticksRemaining / 60) % 60) + ":" + timeFormat.format(ticksRemaining % 60);
+        
+        cg.drawString(tickTime, 4, 28);
+        if (!exchangeServer.getExchange().isRunning()) {
+            cg.setColor(Color.RED);
+            cg.drawString("Downtime", 635, 28);
+        }
 
         cg.transform(AffineTransform.getTranslateInstance(180, 50));
         cg.transform(AffineTransform.getScaleInstance(1.5, 1.5));

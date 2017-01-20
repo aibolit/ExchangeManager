@@ -302,7 +302,7 @@ public class Exchange implements Runnable {
 
         //Check if this is a valid order
         if (shares == null || shares < askOrder.getShares()) {
-            throw new ExchangeException("Not Enough Shares Owned");
+            throw new ExchangeException("Not enough shares owned to make ask order");
         }
 
         Map<String, List<String>> ret = new ConcurrentHashMap<>();
@@ -385,7 +385,7 @@ public class Exchange implements Runnable {
         int sharesLeft = bidOrder.getShares();
 
         if (sharesLeft * bidOrder.getPrice() > cash) {
-            throw new ExchangeException("Not enouch cash to make bid order.");
+            throw new ExchangeException("Not enough cash to make bid order.");
         }
 
         //Remove any existing order for this user
